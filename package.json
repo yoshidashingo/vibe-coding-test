@@ -1,34 +1,48 @@
 {
-  "name": "temp",
-  "version": "0.1.0",
-  "private": true,
+  "name": "vibe-coding-test",
+  "version": "1.0.0",
+  "description": "## 概要 このプロジェクトは、ユーザーが匿名で投稿・コメントができる掲示板システムです。",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "ts-node prisma/seed.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoshidashingo/vibe-coding-test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yoshidashingo/vibe-coding-test/issues"
+  },
+  "homepage": "https://github.com/yoshidashingo/vibe-coding-test#readme",
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.6.0",
-    "next": "15.3.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "swr": "^2.3.3"
+    "@prisma/client": "^5.22.0",
+    "date-fns": "^4.1.0",
+    "next": "^13.4.19",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "swr": "^2.2.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/postcss": "^4.1.4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "postcss": "^8.5.3",
-    "prisma": "^6.6.0",
-    "tailwindcss": "^4.1.4",
-    "typescript": "^5"
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^13.4.19",
+    "postcss": "^8.4.33",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }

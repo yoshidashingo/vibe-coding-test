@@ -1,64 +1,83 @@
-'use client'
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import { Board, Thread } from '@/app/types';
 
-import { useBoard } from '@/hooks/useBoard'
-import { useThreads } from '@/hooks/useThreads'
-import { ThreadCard } from '@/components/ThreadCard'
-import { CreateThreadForm } from '@/components/CreateThreadForm'
-import Link from 'next/link'
+interface BoardPageProps {
+  params: {
+    boardId: string;
+  };
+}
 
-export default function BoardPage({ params }: { params: { boardId: string } }) {
-  const { board, isLoading: isBoardLoading, isError: isBoardError } = useBoard(params.boardId)
-  const { threads, isLoading: isThreadsLoading, isError: isThreadsError } = useThreads(params.boardId)
-
-  if (isBoardError || isThreadsError) {
-    return (
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="text-red-600">データの読み込みに失敗しました</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (isBoardLoading || isThreadsLoading) {
-    return (
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="text-center text-gray-500">読み込み中...</div>
-        </div>
-      </div>
-    )
-  }
+export default async function BoardPage({ params }: BoardPageProps) {
+  const board = await prisma.board.findUnique({
+    where: { id: params.boardId },
+    include: {
+      threads: {
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: {
+            select: { posts: true },
+          },
+        },
+      },
+    },
+  }) as Board | null;
 
   if (!board) {
-    return (
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="text-red-600">掲示板が見つかりません</div>
-        </div>
-      </div>
-    )
+    notFound();
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="mb-8">
-          <Link href="/" className="text-indigo-600 hover:text-indigo-500">
-            ← 掲示板一覧に戻る
-          </Link>
-        </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{board.name}</h1>
-        <p className="text-gray-600 mb-8">{board.description}</p>
-        <CreateThreadForm boardId={board.id} />
-        <div className="grid grid-cols-1 gap-6">
-          {threads?.length === 0 ? (
-            <div className="text-center text-gray-500">スレッドがありません</div>
-          ) : (
-            threads?.map((thread) => <ThreadCard key={thread.id} thread={thread} />)
-          )}
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">{board.name}</h1>
+        <p className="text-gray-600 mb-2">{board.description}</p>
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <span>カテゴリ: {board.category}</span>
+          <span>作成日: {formatDistanceToNow(board.createdAt, { locale: ja, addSuffix: true })}</span>
         </div>
       </div>
+
+      <div className="mb-6">
+        <Link
+          href={`/boards/${board.id}/threads/new`}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded inline-block"
+        >
+          新規スレッド作成
+        </Link>
+      </div>
+
+      <div className="space-y-4">
+        {board.threads.map((thread: Thread) => (
+          <div
+            key={thread.id}
+            className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          >
+            <Link href={`/boards/${board.id}/threads/${thread.id}`}>
+              <h2 className="text-xl font-semibold mb-2">{thread.title}</h2>
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <span>投稿数: {thread._count.posts}</span>
+                <span>
+                  作成日:{' '}
+                  {formatDistanceToNow(thread.createdAt, {
+                    locale: ja,
+                    addSuffix: true,
+                  })}
+                </span>
+              </div>
+            </Link>
+          </div>
+        ))}
+
+        {board.threads.length === 0 && (
+          <p className="text-gray-500 text-center py-8">
+            この掲示板にはまだスレッドがありません。
+          </p>
+        )}
+      </div>
     </div>
-  )
+  );
 } 

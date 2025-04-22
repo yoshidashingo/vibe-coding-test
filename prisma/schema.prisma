@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,43 +11,42 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  ipAddress    String
-  createdAt    DateTime @default(now())
-  lastPostedAt DateTime @default(now())
-  posts        Post[]
+  id            String   @id @default(uuid())
+  ipAddress     String   @unique
+  createdAt     DateTime @default(now())
+  lastPostedAt  DateTime @default(now())
+  posts         Post[]
 }
 
 model Board {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String
   category    String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   threads     Thread[]
 }
 
 model Thread {
   id           String   @id @default(uuid())
-  board        Board    @relation(fields: [boardId], references: [id])
   boardId      String
   title        String
   createdAt    DateTime @default(now())
   lastPostedAt DateTime @default(now())
   postCount    Int      @default(0)
+  board        Board    @relation(fields: [boardId], references: [id])
   posts        Post[]
 }
 
 model Post {
   id        String   @id @default(uuid())
-  thread    Thread   @relation(fields: [threadId], references: [id])
   threadId  String
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
   content   String
   nickname  String?
   trip      String?
   imageUrl  String?
   ipAddress String
   createdAt DateTime @default(now())
-}
+  thread    Thread   @relation(fields: [threadId], references: [id])
+  user      User     @relation(fields: [ipAddress], references: [ipAddress])
+} 

@@ -1,37 +1,23 @@
-'use client'
-
-import { useBoards } from '@/hooks/useBoards'
-import { BoardCard } from '@/components/BoardCard'
-import { CreateBoardForm } from '@/components/CreateBoardForm'
+import Link from 'next/link';
 
 export default function Home() {
-  const { boards, isLoading, isError } = useBoards()
-
-  if (isError) {
-    return (
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="text-red-600">掲示板の読み込みに失敗しました</div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">匿名掲示板</h1>
-        <CreateBoardForm />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {isLoading ? (
-            <div className="col-span-full text-center text-gray-500">読み込み中...</div>
-          ) : boards?.length === 0 ? (
-            <div className="col-span-full text-center text-gray-500">掲示板がありません</div>
-          ) : (
-            boards?.map((board) => <BoardCard key={board.id} board={board} />)
-          )}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-center mb-8">匿名掲示板システム</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Link href="/boards" className="card">
+          <h2 className="text-xl font-semibold mb-2">掲示板一覧</h2>
+          <p className="text-gray-600">カテゴリ別の掲示板を閲覧できます。</p>
+        </Link>
+        <Link href="/boards/new" className="card">
+          <h2 className="text-xl font-semibold mb-2">掲示板作成</h2>
+          <p className="text-gray-600">新しい掲示板を作成できます。</p>
+        </Link>
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-2">最近の投稿</h2>
+          <p className="text-gray-600">最近投稿されたスレッドが表示されます。</p>
         </div>
       </div>
     </div>
-  )
+  );
 } 

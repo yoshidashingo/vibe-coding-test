@@ -1,62 +1,88 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { headers } from 'next/headers';
 
-// スレッド一覧を取得
+export async function POST(
+  request: Request,
+  { params }: { params: { boardId: string } }
+) {
+  try {
+    const { title, content } = await request.json();
+    const headersList = headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: 'タイトルと本文は必須です' },
+        { status: 400 }
+      );
+    }
+
+    const board = await prisma.board.findUnique({
+      where: { id: params.boardId },
+    });
+
+    if (!board) {
+      return NextResponse.json(
+        { error: '指定された掲示板が見つかりません' },
+        { status: 404 }
+      );
+    }
+
+    const user = await prisma.user.upsert({
+      where: { id: ipAddress },
+      update: {},
+      create: { id: ipAddress, ipAddress },
+    });
+
+    const thread = await prisma.thread.create({
+      data: {
+        title,
+        boardId: params.boardId,
+        posts: {
+          create: {
+            content,
+            userId: user.id,
+            ipAddress: user.ipAddress,
+          },
+        },
+      },
+      include: {
+        posts: true,
+      },
+    });
+
+    return NextResponse.json(thread);
+  } catch (error) {
+    console.error('スレッド作成エラー:', error);
+    return NextResponse.json(
+      { error: 'スレッドの作成に失敗しました' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { boardId: string } }
 ) {
   try {
     const threads = await prisma.thread.findMany({
-      where: {
-        boardId: params.boardId
-      },
-      orderBy: {
-        lastPostedAt: 'desc'
-      },
+      where: { boardId: params.boardId },
+      orderBy: { createdAt: 'desc' },
       include: {
         _count: {
-          select: { posts: true }
-        }
-      }
-    })
-    return NextResponse.json(threads)
+          select: { posts: true },
+        },
+      },
+    });
+
+    return NextResponse.json(threads);
   } catch (error) {
+    console.error('スレッド一覧取得エラー:', error);
     return NextResponse.json(
-      { error: 'スレッドの取得に失敗しました' },
+      { error: 'スレッド一覧の取得に失敗しました' },
       { status: 500 }
-    )
-  }
-}
-
-// 新しいスレッドを作成
-export async function POST(
-  request: Request,
-  { params }: { params: { boardId: string } }
-) {
-  try {
-    const body = await request.json()
-    const { title } = body
-
-    if (!title) {
-      return NextResponse.json(
-        { error: 'タイトルは必須です' },
-        { status: 400 }
-      )
-    }
-
-    const thread = await prisma.thread.create({
-      data: {
-        title,
-        boardId: params.boardId
-      }
-    })
-
-    return NextResponse.json(thread)
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'スレッドの作成に失敗しました' },
-      { status: 500 }
-    )
+    );
   }
 } 
